@@ -1,0 +1,52 @@
+[
+    {
+        "id" :1,
+        "personName": "Diren",
+        "teamName" : "Feyenoord (Draft)"
+    },
+    {
+        "id" :2,
+        "personName": "Harun",
+        "teamName" : "Bournemouth (Draft)"
+    },
+    {
+        "id" :3,
+        "personName": "Çağlar",
+        "teamName" : "Brighton (Draft)"
+    },
+    {
+        "id" :4,
+        "personName": "Hüseyin T",
+        "teamName" : "Brentford (Draft)"
+    },
+    {
+        "id" :5,
+        "personName": "Çağatay",
+        "teamName" : "Celta Vigo (Draft)"
+    },
+    {
+        "id" :6,
+        "personName": "Barış",
+        "teamName" : "Nice (Draft)"
+    },
+    {
+        "id" :7,
+        "personName": "Hüseyin C",
+        "teamName" : "Lens (Draft)"
+    },
+    {
+        "id" :8,
+        "personName": "Levent",
+        "teamName" : "Wolfsburg (Draft)"
+    },
+    {
+        "id" :9,
+        "personName": "Ertuğrul",
+        "teamName" : "Everton (Draft)"
+    },
+    {
+        "id" :10,
+        "personName": "Batu",
+        "teamName" : "Eintracht Frankfurt (Draft)"
+    }
+]

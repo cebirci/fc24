@@ -1,0 +1,36 @@
+<html>
+
+<head>
+    <title>FC 24 League</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div style="display: flex;;flex-direction: column;align-items: center;">
+        <h1>
+            FC 24 League
+        </h1>
+        <h2>
+            Fixture
+        </h2>
+        <div class="fixtureContainer">
+
+        </div>
+    </div>
+    <script>
+        var TEAMS = [];
+        $(document).ready(function () {
+
+            $.ajax({
+                url: "teams.json",
+                success: function(data){
+                    TEAMS = data;
+                }
+            })
+
+        })
+    </script>
+</body>
+
+</html>
