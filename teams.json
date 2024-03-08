@@ -1,52 +1,52 @@
 [
     {
-        "id" :1,
+        "id": 1,
         "personName": "Diren",
-        "teamName" : "Feyenoord (Draft)"
+        "teamName": "Feyenoord"
     },
     {
-        "id" :2,
+        "id": 2,
         "personName": "Harun",
-        "teamName" : "Bournemouth (Draft)"
+        "teamName": "Bournemouth"
     },
     {
-        "id" :3,
+        "id": 3,
         "personName": "Çağlar",
-        "teamName" : "Brighton (Draft)"
+        "teamName": "Brighton"
     },
     {
-        "id" :4,
+        "id": 4,
         "personName": "Hüseyin T",
-        "teamName" : "Brentford (Draft)"
+        "teamName": "Brentford"
     },
     {
-        "id" :5,
+        "id": 5,
         "personName": "Çağatay",
-        "teamName" : "Celta Vigo (Draft)"
+        "teamName": "Celta Vigo"
     },
     {
-        "id" :6,
+        "id": 6,
         "personName": "Barış",
-        "teamName" : "Nice (Draft)"
+        "teamName": "Nice"
     },
     {
-        "id" :7,
+        "id": 7,
         "personName": "Hüseyin C",
-        "teamName" : "Lens (Draft)"
+        "teamName": "Lens"
     },
     {
-        "id" :8,
+        "id": 8,
         "personName": "Levent",
-        "teamName" : "Wolfsburg (Draft)"
+        "teamName": "Wolfsburg"
     },
     {
-        "id" :9,
+        "id": 9,
         "personName": "Ertuğrul",
-        "teamName" : "Everton (Draft)"
+        "teamName": "Everton"
     },
     {
-        "id" :10,
+        "id": 10,
         "personName": "Batu",
-        "teamName" : "Eintracht Frankfurt (Draft)"
+        "teamName": "Eintracht Frankfurt"
     }
 ]
