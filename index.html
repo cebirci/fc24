@@ -61,13 +61,13 @@
             let jsonString = fixtureResult[0].substring(47).slice(0, -2);
             let fixtureSheetData = JSON.parse(jsonString);
             fixtureSheetData.table.rows.forEach(element => {
-                if(element.c.length > 4 && element.c[3] !== null) {
+                if(element.c.length > 4) {
                     result.push({
                         "week": element.c[0].v,
-                        "homeTeam": getTeamByTeamName(element.c[1].v).id,
-                        "awayTeam": getTeamByTeamName(element.c[2].v).id,
-                        "homeGoals": element.c[3].v,
-                        "awayGoals": element.c[4].v
+                        "homeTeam": element.c[1] !== null ? getTeamByTeamName(element.c[1].v).id : null,
+                        "awayTeam": element.c[2] !== null ? getTeamByTeamName(element.c[2].v).id : null,
+                        "homeGoals": element.c[3] !== null ? element.c[3].v : null,
+                        "awayGoals": element.c[4] !== null ? element.c[4].v : null
                     });
                 }
             });
@@ -307,7 +307,13 @@
             return TEAMS.find((team) => team.teamName === name);
         }
         function getTeamName(id) {
-            return getTeam(id).teamName;
+            var team = getTeam(id);
+            if(team) {
+                return getTeam(id).teamName;
+            } else {
+                return "";
+            }
+
         }
 
         var groupBy = (x, f) => x.reduce((a, b, i) => ((a[f(b, i, x)] ||= []).push(b), a), {});
