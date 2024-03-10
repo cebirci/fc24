@@ -255,7 +255,7 @@
             orderedTeams.forEach(team => {
                 var teamRow = $("<tr></tr>")
                 teamRow.append("<td>" + (order++) + "</td>");
-                teamRow.append("<td> <img src='img/" + team.id + ".png'/>" + getTeamName(team.id) + " (" + getTeam(team.id).personName + ")</td>");
+                teamRow.append("<td> <img src='img/" + team.id + ".png'/>" + getTeamName(team.id) + " <span class='personName'>(" + getTeam(team.id).personName + ")</span></td>");
                 teamRow.append("<td>" + team.played + "</td>");
                 teamRow.append("<td>" + team.win + "</td>");
                 teamRow.append("<td>" + team.draw + "</td>");
@@ -444,6 +444,11 @@
 
         .weekContainer {
             margin-top: 20px;
+        }
+
+        .personName {
+            color: #7a61ae;
+            font-style: italic;
         }
     </style>
 </body>
