@@ -254,7 +254,7 @@
             orderedTeams.forEach(team => {
                 var teamRow = $("<tr></tr>")
                 teamRow.append("<td>" + (order++) + "</td>");
-                teamRow.append("<td>" + getTeamName(team.id) + " (" + getTeam(team.id).personName + ")</td>");
+                teamRow.append("<td> <img src='img/" + team.id + ".png'/>" + getTeamName(team.id) + " (" + getTeam(team.id).personName + ")</td>");
                 teamRow.append("<td>" + team.played + "</td>");
                 teamRow.append("<td>" + team.win + "</td>");
                 teamRow.append("<td>" + team.draw + "</td>");
@@ -326,7 +326,7 @@
     <style>
         body {
             font-family: Verdana, Geneva, Tahoma, sans-serif;
-            font-size: 28px;
+            font-size: 22px;
         }
 
         table,
@@ -378,6 +378,22 @@
             align-content: center;
         }
 
+        .weekContainer table {
+            width: 650px;
+        }
+
+        .weekContainer table td:first-child {
+            width: 43%;
+        }
+
+        .weekContainer table td:last-child {
+            width: 43%;
+        }
+
+        .weekContainer table td:nth-child(2) {
+            text-align: center;
+        }
+
         .fixtureContainer h2 {
             text-align: center;
             width: 100%;
@@ -386,10 +402,21 @@
         .leagueTable {
             width: 100%;
             margin: 6px 32px;
+            max-width: 1020px;
+        }
+
+        .leagueTable img {
+            width: 24px;
+            vertical-align: bottom;
+            margin-right: 6px;
         }
 
         .leagueTable tr:first-child td {
             font-weight: bold;
+        }
+
+        .leagueTable tr td:first-child {
+            text-align: right;
         }
 
         .leagueTable td {
