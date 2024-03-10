@@ -13,9 +13,9 @@
         <h1>
             FC 24 League - 2.Sezon
         </h1>
-        <div style="display:flex;flex-direction: row;justify-content: space-evenly;width: 100%;">
-            <div>
-                <h2>Puan Durumu</h2>
+        <div style="display:flex;width: 100%;align-content: center;flex-direction: column;">
+            <div style="display: flex;flex-direction: column;">
+                <h2 style="text-align: center;">Puan Durumu</h2>
                 <div class="leagueTableContainer">
                     <table class="leagueTable">
                         <tr>
@@ -40,8 +40,8 @@
                     </div>
                 </div>
             </div>
-            <div>
-                <h2>Fikstür</h2>
+            <div class="fixtureCol">
+                <h2 style="margin-top: 20px; margin-bottom: 0px;">Fikstür</h2>
                 <div class="fixtureContainer">
 
                 </div>
@@ -345,6 +345,40 @@
             border-spacing: 0;
         }
 
+        h2 {
+            text-align: center;
+        }
+
+        .leagueTableContainer {
+            display: flex;
+            justify-content: center;
+        }
+
+        .fixtureCol {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .fixtureContainer {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .weekContainer {
+            display: flex;
+            justify-content: center;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-content: center;
+        }
+
+        .fixtureContainer h2 {
+            text-align: center;
+            width: 100%;
+        }
+
         .leagueTable tr:first-child td {
             font-weight: bold;
         }
@@ -366,7 +400,7 @@
         }
 
         .weekContainer {
-            margin-top: 8px;
+            margin-top: 20px;
         }
     </style>
 </body>
