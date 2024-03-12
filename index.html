@@ -1,459 +1,487 @@
 <html>
 
 <head>
-    <title>FC 24 League</title>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
-            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<title>FC 24 League</title>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 
-    <link rel="manifest" href="img/manifest.json" />
-    <link rel="icon" href="img/favicon.ico" />
-    <link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+<link rel="manifest" href="img/manifest.json" />
+<link rel="icon" href="img/favicon.ico" />
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
 
 </head>
 
 <body>
-    <div style="display: flex;;flex-direction: column;align-items: center;">
-        <h1 style="color: black;">
-            <img style="height:48px; vertical-align: bottom;" src="img/logo.png" />
-        </h1>
-        <div style="display:flex;width: 100%;align-content: center;flex-direction: column;">
-            <div style="display: flex;flex-direction: column;">
-                <h2 style="text-align: center;">Puan Durumu</h2>
-                <div class="leagueTableContainer">
-                    <table class="leagueTable">
-                        <tr>
-                            <td></td>
-                            <td>Takım</td>
-                            <td>O</td>
-                            <td>G</td>
-                            <td>B</td>
-                            <td>M</td>
-                            <td>A</td>
-                            <td>Y</td>
-                            <td>Av</td>
-                            <td>P</td>
-                        </tr>
-                    </table>
-                    <div style="font-size: 12px; margin-top: 6px; display: none;">
-                        Sıralama Ölçütü:
-                        <br />1 - Puan
-                        <br />2 - Takımların aralarındaki maçlarda topladıkları puan
-                        <br />3 - Gol averajı
-                        <br />4 - Atılan gol
-                    </div>
-                </div>
-            </div>
-            <div class="fixtureCol">
-                <h2 style="border-top: 1px solid #DDD;margin-top: 50px;margin-bottom: 0px;padding-top: 25px;">Fikstür
-                </h2>
-                <div class="fixtureContainer">
+<div style="display: flex;;flex-direction: column;align-items: center;">
+<h1 style="color: black;">
+<img style="height:48px; vertical-align: bottom;" src="img/logo.png" />
+</h1>
+<div style="display:flex;width: 100%;align-content: center;flex-direction: column;">
+<div style="display: flex;flex-direction: column;">
+<h2 style="text-align: center;">Puan Durumu</h2>
+<div class="leagueTableContainer">
+<table class="leagueTable">
+<tr>
+<td></td>
+<td>Takım</td>
+<td class='pointInfo'>O</td>
+<td class='pointInfo'>G</td>
+<td class='pointInfo'>B</td>
+<td class='pointInfo'>M</td>
+<td class='pointInfo'>A</td>
+<td class='pointInfo'>Y</td>
+<td class='pointInfo'>Av</td>
+<td class='pointInfo'>P</td>
+</tr>
+</table>
+<div style="font-size: 12px; margin-top: 6px; display: none;">
+Sıralama Ölçütü:
+<br />1 - Puan
+<br />2 - Takımların aralarındaki maçlarda topladıkları puan
+<br />3 - Gol averajı
+<br />4 - Atılan gol
+</div>
+</div>
+</div>
+<div class="fixtureCol">
+<h2 style="border-top: 1px solid #DDD;margin-top: 50px;margin-bottom: 0px;padding-top: 25px;"><span id="selectedTeamInfo"></span>Fikstür</h2>
+<div class="fixtureContainer">
+</div>
+</div>
+</div>
+</div>
+<script>
+var TEAMS = {};
+var FIXTURE = [];
+var WEEK_COUNT = 18;
+var teamPoints = [];
+var orderedTeams = [];
+var selectedTeamId = null;
 
-                </div>
-            </div>
-        </div>
-    </div>
-    <script>
-        var TEAMS = {};
-        var FIXTURE = [];
-        var WEEK_COUNT = 18;
-        var teamPoints = [];
-        var orderedTeams = [];
+$.when(getTeams(), getFixture()).done(function (teamsResult, fixtureResult) {
+TEAMS = teamsResult[0];
+let result = [];
+let jsonString = fixtureResult[0].substring(47).slice(0, -2);
+let fixtureSheetData = JSON.parse(jsonString);
+fixtureSheetData.table.rows.forEach(element => {
+if(element.c.length > 4) {
+result.push({
+"week": element.c[0].v,
+"homeTeam": element.c[1] !== null ? getTeamByTeamName(element.c[1].v).id : null,
+"awayTeam": element.c[2] !== null ? getTeamByTeamName(element.c[2].v).id : null,
+"homeGoals": element.c[3] !== null ? element.c[3].v : null,
+"awayGoals": element.c[4] !== null ? element.c[4].v : null
+});
+}
+});
+FIXTURE = result;
+prepareFixture();
+calculateTeamPoints();
+orderTeams();
+prepareLeagueTable();
+});
 
-        $.when(getTeams(), getFixture()).done(function (teamsResult, fixtureResult) {
-            TEAMS = teamsResult[0];
-            let result = [];
-            let jsonString = fixtureResult[0].substring(47).slice(0, -2);
-            let fixtureSheetData = JSON.parse(jsonString);
-            fixtureSheetData.table.rows.forEach(element => {
-                if(element.c.length > 4) {
-                    result.push({
-                        "week": element.c[0].v,
-                        "homeTeam": element.c[1] !== null ? getTeamByTeamName(element.c[1].v).id : null,
-                        "awayTeam": element.c[2] !== null ? getTeamByTeamName(element.c[2].v).id : null,
-                        "homeGoals": element.c[3] !== null ? element.c[3].v : null,
-                        "awayGoals": element.c[4] !== null ? element.c[4].v : null
-                    });
-                }
-            });
-            FIXTURE = result;
-            prepareFixture();
-            calculateTeamPoints();
-            orderTeams();
-            prepareLeagueTable();
-        });
+function calculateTeamPoints() {
+TEAMS.forEach(team => {
+var teamPnt = {};
+teamPnt["id"] = team.id;
+teamPnt["played"] = 0;
+teamPnt["win"] = 0;
+teamPnt["lost"] = 0;
+teamPnt["draw"] = 0;
+teamPnt["points"] = 0;
+teamPnt["goalsScored"] = 0;
+teamPnt["goalsConceded"] = 0;
+teamPnt["homeWin"] = 0;
+teamPnt["homeLost"] = 0;
+teamPnt["homeDraw"] = 0;
+teamPnt["awayWin"] = 0;
+teamPnt["awayLost"] = 0;
+teamPnt["awayDraw"] = 0;
+teamPnt["homeGoalsScored"] = 0;
+teamPnt["awayGoalsScored"] = 0;
+teamPnt["homeGoalsConceded"] = 0;
+teamPnt["awayGoalsConceded"] = 0;
+teamPnt["homePoints"] = 0;
+teamPnt["awayPoints"] = 0;
 
-        function calculateTeamPoints() {
-            TEAMS.forEach(team => {
-                var teamPnt = {};
-                teamPnt["id"] = team.id;
-                teamPnt["played"] = 0;
-                teamPnt["win"] = 0;
-                teamPnt["lost"] = 0;
-                teamPnt["draw"] = 0;
-                teamPnt["points"] = 0;
-                teamPnt["goalsScored"] = 0;
-                teamPnt["goalsConceded"] = 0;
-                teamPnt["homeWin"] = 0;
-                teamPnt["homeLost"] = 0;
-                teamPnt["homeDraw"] = 0;
-                teamPnt["awayWin"] = 0;
-                teamPnt["awayLost"] = 0;
-                teamPnt["awayDraw"] = 0;
-                teamPnt["homeGoalsScored"] = 0;
-                teamPnt["awayGoalsScored"] = 0;
-                teamPnt["homeGoalsConceded"] = 0;
-                teamPnt["awayGoalsConceded"] = 0;
-                teamPnt["homePoints"] = 0;
-                teamPnt["awayPoints"] = 0;
+let homeMatches = FIXTURE.filter((match) => match.homeTeam === team.id);
+homeMatches.forEach(homeMatch => {
+if(homeMatch.homeGoals !== null && homeMatch.homeGoals > -1) {
+teamPnt.homeGoalsScored += homeMatch.homeGoals;
+teamPnt.homeGoalsConceded += homeMatch.awayGoals;
+if(homeMatch.homeGoals > homeMatch.awayGoals) {
+teamPnt.homeWin++;
+} else if(homeMatch.homeGoals < homeMatch.awayGoals) {
+teamPnt.homeLost++;
+} else {
+teamPnt.homeDraw++;
+}
+}
+});
 
-                let homeMatches = FIXTURE.filter((match) => match.homeTeam === team.id);
-                homeMatches.forEach(homeMatch => {
-                    if(homeMatch.homeGoals !== null && homeMatch.homeGoals > -1) {
-                        teamPnt.homeGoalsScored += homeMatch.homeGoals;
-                        teamPnt.homeGoalsConceded += homeMatch.awayGoals;
-                        if(homeMatch.homeGoals > homeMatch.awayGoals) {
-                            teamPnt.homeWin++;
-                        } else if(homeMatch.homeGoals < homeMatch.awayGoals) {
-                            teamPnt.homeLost++;
-                        } else {
-                            teamPnt.homeDraw++;
-                        }
-                    }
-                });
-
-                let awayMatches = FIXTURE.filter((match) => match.awayTeam === team.id);
-                awayMatches.forEach(awayMatch => {
-                    if(awayMatch.awayGoals !== null && awayMatch.awayGoals > -1) {
-                        teamPnt.awayGoalsScored += awayMatch.awayGoals;
-                        teamPnt.awayGoalsConceded += awayMatch.homeGoals;
-                        if(awayMatch.awayGoals > awayMatch.homeGoals) {
-                            teamPnt.awayWin++;
-                        } else if(awayMatch.awayGoals < awayMatch.homeGoals) {
-                            teamPnt.awayLost++;
-                        } else {
-                            teamPnt.awayDraw++;
-                        }
-                    }
-                });
-
-
-                teamPnt.draw = teamPnt.homeDraw + teamPnt.awayDraw;
-                teamPnt.win = teamPnt.homeWin + teamPnt.awayWin;
-                teamPnt.lost = teamPnt.homeLost + teamPnt.awayLost;
-                teamPnt.goalsScored = teamPnt.homeGoalsScored + teamPnt.awayGoalsScored;
-                teamPnt.goalsConceded = teamPnt.homeGoalsConceded + teamPnt.awayGoalsConceded;
-                teamPnt.points = teamPnt.win * 3 + teamPnt.draw;
-                teamPnt.played = teamPnt.win + teamPnt.draw + teamPnt.lost;
-
-                teamPoints.push(teamPnt);
-
-            });
-        }
-        function orderTeams() {
-
-            var pointOrdered = orderTeamsAccordingToPointsAndDiff(teamPoints);
-
-            var grouped = groupBy(pointOrdered, x => x.points);
-            var pointKeys = Object.keys(grouped).sort((a, b) => parseInt(b) - parseInt(a));
-
-            pointKeys.forEach(x => {
-                if(grouped[x].length === 1) {
-                    orderedTeams.push(grouped[x][0]);
-                } else {
-                    let orderedSamePoints = orderSamePoints(grouped[x]);
-                    orderedTeams = orderedTeams.concat(orderedSamePoints);
-                }
-            })
-        }
-
-        function orderSamePoints(teamSamePoints) {
-            let allMatchesCompleted = againstOrderMatchesCompletionCheck(teamSamePoints);
-            if(allMatchesCompleted) {
-                return againstOrderCalculation(teamSamePoints);
-            } else {
-                return teamSamePoints;
-            }
-        }
-
-        function againstOrderMatchesCompletionCheck(teamSamePoints) {
-            // check if they completed matches between
-            for(let i = 0; i < teamSamePoints.length - 1; i++) {
-                for(let j = i + 1; j < teamSamePoints.length; j++) {
-                    const firstTeam = teamSamePoints[i];
-                    const secondTeam = teamSamePoints[j];
-                    if(!haveBothMatchesCompleted(firstTeam, secondTeam)) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        function againstOrderCalculation(teamSamePoints) {
-            var againstOrderPoints = teamSamePoints.map((x) => { return { id: x.id, points: 0 } });
-            let againstOrderedTeamPoints = [];
-            // check if they completed matches between
-            for(let i = 0; i < teamSamePoints.length - 1; i++) {
-                for(let j = i + 1; j < teamSamePoints.length; j++) {
-                    const firstTeam = teamSamePoints[i];
-                    const secondTeam = teamSamePoints[j];
-                    let match1 = FIXTURE.find(x => x.homeTeam === firstTeam.id && x.awayTeam === secondTeam.id);
-                    let match2 = FIXTURE.find(x => x.homeTeam === secondTeam.id && x.awayTeam === firstTeam.id);
-
-                    if(match1.homeGoals > match1.awayGoals) {
-                        againstOrderPoints.find(x => x.id == match1.homeTeam).points += 3;
-                    } else if(match1.homeGoals < match1.awayGoals) {
-                        againstOrderPoints.find(x => x.id == match1.awayTeam).points += 3;
-                    } else {
-                        againstOrderPoints.find(x => x.id == match1.homeTeam).points += 1;
-                        againstOrderPoints.find(x => x.id == match1.awayTeam).points += 1;
-                    }
-
-                    if(match2.homeGoals > match2.awayGoals) {
-                        againstOrderPoints.find(x => x.id == match2.homeTeam).points += 3;
-                    } else if(match2.homeGoals < match2.awayGoals) {
-                        againstOrderPoints.find(x => x.id == match2.awayTeam).points += 3;
-                    } else {
-                        againstOrderPoints.find(x => x.id == match2.homeTeam).points += 1;
-                        againstOrderPoints.find(x => x.id == match2.awayTeam).points += 1;
-                    }
-
-                }
-            }
-
-            againstOrderTeamsOrdered = againstOrderPoints.sort((a, b) => b.points - a.points);
-
-            againstOrderTeamsOrdered.forEach(team => {
-                againstOrderedTeamPoints.push(teamSamePoints.find(x => x.id === team.id));
-            });
-
-            return againstOrderedTeamPoints;
-        }
+let awayMatches = FIXTURE.filter((match) => match.awayTeam === team.id);
+awayMatches.forEach(awayMatch => {
+if(awayMatch.awayGoals !== null && awayMatch.awayGoals > -1) {
+teamPnt.awayGoalsScored += awayMatch.awayGoals;
+teamPnt.awayGoalsConceded += awayMatch.homeGoals;
+if(awayMatch.awayGoals > awayMatch.homeGoals) {
+teamPnt.awayWin++;
+} else if(awayMatch.awayGoals < awayMatch.homeGoals) {
+teamPnt.awayLost++;
+} else {
+teamPnt.awayDraw++;
+}
+}
+});
 
 
-        function haveBothMatchesCompleted(team1, team2) {
-            let firstMatch = FIXTURE.find(x => x.homeTeam === team1.id && x.awayTeam === team2.id);
-            let secondMatch = FIXTURE.find(x => x.homeTeam === team2.id && x.awayTeam === team1.id);
-            if(!firstMatch || !secondMatch) { return false; }
-            if(firstMatch.homeGoals !== null && firstMatch.awayGoals !== null
-                && secondMatch.homeGoals !== null && secondMatch.awayGoals !== null
-            ) {
-                return true;
-            } else {
-                return false;
-            }
-        }
+teamPnt.draw = teamPnt.homeDraw + teamPnt.awayDraw;
+teamPnt.win = teamPnt.homeWin + teamPnt.awayWin;
+teamPnt.lost = teamPnt.homeLost + teamPnt.awayLost;
+teamPnt.goalsScored = teamPnt.homeGoalsScored + teamPnt.awayGoalsScored;
+teamPnt.goalsConceded = teamPnt.homeGoalsConceded + teamPnt.awayGoalsConceded;
+teamPnt.points = teamPnt.win * 3 + teamPnt.draw;
+teamPnt.played = teamPnt.win + teamPnt.draw + teamPnt.lost;
 
-        function orderTeamsAccordingToPointsAndDiff(teamPoints) {
-            // this looks at points first, then goal difference, then goals scored
-            return [...teamPoints].sort(function (a, b) {
-                return (b.points * 100000 + (b.goalsScored - b.goalsConceded) * 1000 + b.goalsScored) -
-                    (a.points * 100000 + (a.goalsScored - a.goalsConceded) * 1000 + a.goalsScored);
-            });
-        }
+teamPoints.push(teamPnt);
 
-        function prepareLeagueTable() {
-            let order = 1;
-            orderedTeams.forEach(team => {
-                var teamRow = $("<tr></tr>")
-                teamRow.append("<td>" + (order++) + "</td>");
-                teamRow.append("<td> <img src='img/" + team.id + ".png'/>" + getTeamName(team.id) + " <span class='personName'>(" + getTeam(team.id).personName + ")</span></td>");
-                teamRow.append("<td>" + team.played + "</td>");
-                teamRow.append("<td>" + team.win + "</td>");
-                teamRow.append("<td>" + team.draw + "</td>");
-                teamRow.append("<td>" + team.lost + "</td>");
-                teamRow.append("<td>" + team.goalsScored + "</td>");
-                teamRow.append("<td>" + team.goalsConceded + "</td>");
-                teamRow.append("<td>" + (team.goalsScored - team.goalsConceded) + "</td>");
-                teamRow.append("<td>" + team.points + "</td>");
-                $(".leagueTable").append(teamRow);
-            })
-        }
+});
+}
+function orderTeams() {
 
-        function prepareFixture() {
-            for(let i = 1; i <= WEEK_COUNT; i++) {
-                let weekMatches = FIXTURE.filter((match) => match.week === i);
-                var weekContainer = $("<div class='weekContainer'><div class='weekTitle'>" + i + ". Hafta</div></div>");
-                var weekTable = $("<table></table>");
+var pointOrdered = orderTeamsAccordingToPointsAndDiff(teamPoints);
 
-                weekMatches.forEach(wMatch => {
-                    weekTable.append("<tr><td>" + getTeamName(wMatch.homeTeam) + "</td><td>" + (wMatch.homeGoals !== null ? wMatch.homeGoals : "") + " - " + (wMatch.awayGoals !== null ? wMatch.awayGoals : "") + "<td>" + getTeamName(wMatch.awayTeam) + "</td></tr>")
-                });
-                weekContainer.append(weekTable);
+var grouped = groupBy(pointOrdered, x => x.points);
+var pointKeys = Object.keys(grouped).sort((a, b) => parseInt(b) - parseInt(a));
 
-                $(".fixtureContainer").append(weekContainer);
-            }
-        }
+pointKeys.forEach(x => {
+if(grouped[x].length === 1) {
+orderedTeams.push(grouped[x][0]);
+} else {
+let orderedSamePoints = orderSamePoints(grouped[x]);
+orderedTeams = orderedTeams.concat(orderedSamePoints);
+}
+})
+}
 
-        function getTeams() {
-            return $.ajax({
-                url: "teams.json",
-                success: function (data) {
-                    TEAMS = data;
-                }
-            });
-        }
+function orderSamePoints(teamSamePoints) {
+let allMatchesCompleted = againstOrderMatchesCompletionCheck(teamSamePoints);
+if(allMatchesCompleted) {
+return againstOrderCalculation(teamSamePoints);
+} else {
+return teamSamePoints;
+}
+}
 
-        function getFixture() {
-            return $.ajax({
-                url: "https://docs.google.com/spreadsheets/d/1JqSd3wS8D_9ojkmYezEAYzKmC40q1TWRxoqQi46NRsY/gviz/tq"
-            });
-        }
+function againstOrderMatchesCompletionCheck(teamSamePoints) {
+// check if they completed matches between
+for(let i = 0; i < teamSamePoints.length - 1; i++) {
+for(let j = i + 1; j < teamSamePoints.length; j++) {
+const firstTeam = teamSamePoints[i];
+const secondTeam = teamSamePoints[j];
+if(!haveBothMatchesCompleted(firstTeam, secondTeam)) {
+return false;
+}
+}
+}
 
-        function getTeam(id) {
-            return TEAMS.find((team) => team.id === parseInt(id, 10));
-        }
-        function getTeamByPersonName(name) {
-            return TEAMS.find((team) => team.personName === name);
-        }
-        function getTeamByTeamName(name) {
-            return TEAMS.find((team) => team.teamName === name);
-        }
-        function getTeamName(id) {
-            var team = getTeam(id);
-            if(team) {
-                return getTeam(id).teamName;
-            } else {
-                return "";
-            }
+return true;
+}
 
-        }
+function againstOrderCalculation(teamSamePoints) {
+var againstOrderPoints = teamSamePoints.map((x) => { return { id: x.id, points: 0 } });
+let againstOrderedTeamPoints = [];
+// check if they completed matches between
+for(let i = 0; i < teamSamePoints.length - 1; i++) {
+for(let j = i + 1; j < teamSamePoints.length; j++) {
+const firstTeam = teamSamePoints[i];
+const secondTeam = teamSamePoints[j];
+let match1 = FIXTURE.find(x => x.homeTeam === firstTeam.id && x.awayTeam === secondTeam.id);
+let match2 = FIXTURE.find(x => x.homeTeam === secondTeam.id && x.awayTeam === firstTeam.id);
 
-        var groupBy = (x, f) => x.reduce((a, b, i) => ((a[f(b, i, x)] ||= []).push(b), a), {});
+if(match1.homeGoals > match1.awayGoals) {
+againstOrderPoints.find(x => x.id == match1.homeTeam).points += 3;
+} else if(match1.homeGoals < match1.awayGoals) {
+againstOrderPoints.find(x => x.id == match1.awayTeam).points += 3;
+} else {
+againstOrderPoints.find(x => x.id == match1.homeTeam).points += 1;
+againstOrderPoints.find(x => x.id == match1.awayTeam).points += 1;
+}
+
+if(match2.homeGoals > match2.awayGoals) {
+againstOrderPoints.find(x => x.id == match2.homeTeam).points += 3;
+} else if(match2.homeGoals < match2.awayGoals) {
+againstOrderPoints.find(x => x.id == match2.awayTeam).points += 3;
+} else {
+againstOrderPoints.find(x => x.id == match2.homeTeam).points += 1;
+againstOrderPoints.find(x => x.id == match2.awayTeam).points += 1;
+}
+
+}
+}
+
+againstOrderTeamsOrdered = againstOrderPoints.sort((a, b) => b.points - a.points);
+
+againstOrderTeamsOrdered.forEach(team => {
+againstOrderedTeamPoints.push(teamSamePoints.find(x => x.id === team.id));
+});
+
+return againstOrderedTeamPoints;
+}
 
 
+function haveBothMatchesCompleted(team1, team2) {
+let firstMatch = FIXTURE.find(x => x.homeTeam === team1.id && x.awayTeam === team2.id);
+let secondMatch = FIXTURE.find(x => x.homeTeam === team2.id && x.awayTeam === team1.id);
+if(!firstMatch || !secondMatch) { return false; }
+if(firstMatch.homeGoals !== null && firstMatch.awayGoals !== null
+&& secondMatch.homeGoals !== null && secondMatch.awayGoals !== null
+) {
+return true;
+} else {
+return false;
+}
+}
 
+function orderTeamsAccordingToPointsAndDiff(teamPoints) {
+// this looks at points first, then goal difference, then goals scored
+return [...teamPoints].sort(function (a, b) {
+return (b.points * 100000 + (b.goalsScored - b.goalsConceded) * 1000 + b.goalsScored) -
+(a.points * 100000 + (a.goalsScored - a.goalsConceded) * 1000 + a.goalsScored);
+});
+}
 
-    </script>
+function prepareLeagueTable() {
+let order = 1;
+orderedTeams.forEach(team => {
+var teamRow = $("<tr></tr>")
+teamRow.append("<td>" + (order++) + "</td>");
+teamRow.append("<td> <img src='img/" + team.id + ".png'/>" + getTeamName(team.id) + " <span class='personName' onClick='showPersonFixture("+team.id+")'>(" + getTeam(team.id).personName + ")</span></td>");
+teamRow.append("<td class='pointInfo'>" + team.played + "</td>");
+teamRow.append("<td class='pointInfo'>" + team.win + "</td>");
+teamRow.append("<td class='pointInfo'>" + team.draw + "</td>");
+teamRow.append("<td class='pointInfo'>" + team.lost + "</td>");
+teamRow.append("<td class='pointInfo'>" + team.goalsScored + "</td>");
+teamRow.append("<td class='pointInfo'>" + team.goalsConceded + "</td>");
+teamRow.append("<td class='pointInfo'>" + (team.goalsScored - team.goalsConceded) + "</td>");
+teamRow.append("<td class='pointInfo'>" + team.points + "</td>");
+$(".leagueTable").append(teamRow);
+})
+}
 
-    <style>
-        body {
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
-            font-size: 22px;
-        }
+function prepareFixture() {
+$(".fixtureContainer").html('');
+for(let i = 1; i <= WEEK_COUNT; i++) {
+let weekMatches = FIXTURE.filter((match) => match.week === i);
+if (selectedTeamId != null) {
+weekMatches = weekMatches.filter((match) =>
+match.homeTeam === selectedTeamId || match.awayTeam === selectedTeamId
+);
+console.log(weekMatches)
+}
+var weekContainer = $("<div class='weekContainer'><div class='weekTitle'>" + i + ". Hafta</div></div>");
+var weekTable = $("<table></table>");
 
-        table,
-        tr,
-        td {
-            margin: 0;
-            padding: 0;
-            border: 0;
-            font-size: 100%;
-            font: inherit;
-            vertical-align: baseline;
-        }
+weekMatches.forEach(wMatch => {
+weekTable.append("<tr><td>" + getTeamName(wMatch.homeTeam) + "</td><td>" + (wMatch.homeGoals !== null ? wMatch.homeGoals : "") + " - " + (wMatch.awayGoals !== null ? wMatch.awayGoals : "") + "<td>" + getTeamName(wMatch.awayTeam) + "</td></tr>")
+});
+weekContainer.append(weekTable);
 
-        table {
-            border-collapse: collapse;
-            border-spacing: 0;
-        }
+$(".fixtureContainer").append(weekContainer);
+}
+}
 
-        h2 {
-            text-align: center;
-        }
+function getTeams() {
+return $.ajax({
+url: "teams.json",
+success: function (data) {
+TEAMS = data;
+}
+});
+}
 
-        h1,
-        h2 {
-            color: #3800b4;
-        }
+function getFixture() {
+return $.ajax({
+url: "https://docs.google.com/spreadsheets/d/1JqSd3wS8D_9ojkmYezEAYzKmC40q1TWRxoqQi46NRsY/gviz/tq"
+});
+}
 
-        .leagueTableContainer {
-            display: flex;
-            justify-content: center;
-        }
+function getTeam(id) {
+return TEAMS.find((team) => team.id === parseInt(id, 10));
+}
+function getTeamByPersonName(name) {
+return TEAMS.find((team) => team.personName === name);
+}
+function getTeamByTeamName(name) {
+return TEAMS.find((team) => team.teamName === name);
+}
+function getTeamName(id) {
+var team = getTeam(id);
+if(team) {
+return getTeam(id).teamName;
+} else {
+return "";
+}
 
-        h1 {
-            margin-bottom: 0px;
-        }
+}
 
-        .fixtureCol {
-            display: flex;
-            justify-content: center;
-            flex-direction: column;
-        }
+function showPersonFixture(teamId) {
+if (selectedTeamId === teamId) {
+selectedTeamId = null;
+$('#selectedTeamInfo').html('');
+} else {
+selectedTeamId = teamId;
 
-        .fixtureContainer {
-            display: flex;
-            justify-content: center;
-            flex-direction: column;
-        }
+const teamName = getTeamName(teamId);
+const personName = getTeam(teamId).personName;
 
-        .weekContainer {
-            display: flex;
-            justify-content: center;
-            flex-direction: column;
-            flex-wrap: wrap;
-            align-content: center;
-        }
+$('#selectedTeamInfo').html(teamName + ' - (' + personName + ') - ');
+}
 
-        .weekContainer table {
-            width: 650px;
-        }
+prepareFixture();
+}
 
-        .weekContainer table td:first-child {
-            width: 43%;
-        }
+var groupBy = (x, f) => x.reduce((a, b, i) => ((a[f(b, i, x)] ||= []).push(b), a), {});
+</script>
 
-        .weekContainer table td:last-child {
-            width: 43%;
-        }
+<style>
+body {
+font-family: Verdana, Geneva, Tahoma, sans-serif;
+font-size: 22px;
+}
 
-        .weekContainer table td:nth-child(2) {
-            text-align: center;
-        }
+table,
+tr,
+td {
+margin: 0;
+padding: 0;
+border: 0;
+font-size: 100%;
+font: inherit;
+vertical-align: baseline;
+}
 
-        .fixtureContainer h2 {
-            text-align: center;
-            width: 100%;
-        }
+table {
+border-collapse: collapse;
+border-spacing: 0;
+}
 
-        .leagueTable {
-            width: 100%;
-            margin: 6px 32px;
-            max-width: 1020px;
-        }
+td.pointInfo {
+width: 5%;
+text-align: center;
+}
+table tr:hover {
+background-color: rgba(0, 0, 255, 0.1);
+transition: background-color 0.3s ease;
+}
 
-        .leagueTable img {
-            width: 24px;
-            height: 24px;
-            vertical-align: bottom;
-            margin-right: 6px;
-        }
+h2 {
+text-align: center;
+}
 
-        .leagueTable tr:first-child td {
-            font-weight: bold;
-        }
+h1,
+h2 {
+color: #3800b4;
+}
 
-        .leagueTable tr td:first-child {
-            text-align: right;
-        }
+.leagueTableContainer {
+display: flex;
+justify-content: center;
+}
 
-        .leagueTable td {
-            border: 1px solid #DDD;
-            padding: 4px 10px;
-        }
+h1 {
+margin-bottom: 0px;
+}
 
-        .weekContainer td {
-            border: 1px solid #DDD;
-            padding: 4px 10px;
-        }
+.fixtureCol {
+display: flex;
+justify-content: center;
+flex-direction: column;
+}
 
-        .weekContainer div:first-child {
-            font-weight: bold;
-            text-align: left;
-            margin-bottom: 6px;
-        }
+.fixtureContainer {
+display: flex;
+justify-content: center;
+flex-direction: column;
+}
 
-        .weekContainer {
-            margin-top: 20px;
-        }
+.weekContainer {
+display: flex;
+justify-content: center;
+flex-direction: column;
+flex-wrap: wrap;
+align-content: center;
+}
 
-        .personName {
-            color: #7a61ae;
-            font-style: italic;
-        }
-    </style>
+.weekContainer table {
+width: 650px;
+}
+
+.weekContainer table td:first-child {
+width: 43%;
+}
+
+.weekContainer table td:last-child {
+width: 43%;
+}
+
+.weekContainer table td:nth-child(2) {
+text-align: center;
+}
+
+.fixtureContainer h2 {
+text-align: center;
+width: 100%;
+}
+
+.leagueTable {
+width: 100%;
+margin: 6px 32px;
+max-width: 1020px;
+}
+
+.leagueTable img {
+width: 24px;
+height: 24px;
+vertical-align: bottom;
+margin-right: 6px;
+}
+
+.leagueTable tr:first-child td {
+font-weight: bold;
+}
+
+.leagueTable tr td:first-child {
+text-align: right;
+}
+
+.leagueTable td {
+border: 1px solid #DDD;
+padding: 4px 10px;
+}
+
+.weekContainer td {
+border: 1px solid #DDD;
+padding: 4px 10px;
+}
+
+.weekContainer div:first-child {
+font-weight: bold;
+text-align: left;
+margin-bottom: 6px;
+}
+
+.weekContainer {
+margin-top: 20px;
+}
+
+.personName {
+color: #7a61ae;
+font-style: italic;
+cursor: pointer;
+}
+</style>
 </body>
 
 </html>
