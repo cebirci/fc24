@@ -50,18 +50,36 @@
                 </div>
             </div>
         </div>
+        <div><br /><br /><br /><button id="btnBildirim">Bildirimleri Aç (Beta)</button></div>
     </div>
     <script>
         var TEAMS = {};
         var FIXTURE = [];
+        var NOTIFICATION_SNAPSHOT_FIXTURE = [];
         var WEEK_COUNT = 18;
         var teamPoints = [];
         var orderedTeams = [];
         var selectedTeamId = null;
 
         $(window).on("load", function () {
-            initPage();
+            initPage(true);
+            if(Notification?.permission === "granted") {
+                $("#btnBildirim").hide();
+                setInterval(checkForNewEvent, 10000);
+            }
         });
+
+        $("#btnBildirim").on("click", function () {
+            if(!("Notification" in window)) {
+                alert("Tarayıcınız bildirim desteklemiyor :(");
+                return;
+            }
+            if(Notification?.permission === "granted") {
+                alert("Bildirimleriniz zaten açık :(");
+                return;
+            }
+            askNotificationPermission();
+        })
 
         $(document).on("visibilitychange", function (event) {
             if(!document.hidden) {
@@ -69,7 +87,8 @@
             }
         });
 
-        function initPage() {
+
+        function initPage(firstLoad) {
             TEAMS = {};
             FIXTURE = [];
             teamPoints = [];
@@ -78,28 +97,34 @@
             $('#selectedTeamInfo').html('');
             $.when(getTeams(), getFixture()).done(function (teamsResult, fixtureResult) {
                 TEAMS = teamsResult[0];
-                let result = [];
-                let jsonString = fixtureResult[0].substring(47).slice(0, -2);
-                let fixtureSheetData = JSON.parse(jsonString);
-                fixtureSheetData.table.rows.forEach(element => {
-                    if(element.c.length > 4) {
-                        result.push({
-                            "week": element.c[0].v,
-                            "homeTeam": element.c[1] !== null ? getTeamByTeamName(element.c[1].v).id : null,
-                            "awayTeam": element.c[2] !== null ? getTeamByTeamName(element.c[2].v).id : null,
-                            "homeGoals": element.c[3] !== null ? element.c[3].v : null,
-                            "awayGoals": element.c[4] !== null ? element.c[4].v : null
-                        });
-                    }
-                });
-                FIXTURE = result;
+                FIXTURE = convertGoogleJsonStringToFixture(fixtureResult[0]);
                 prepareFixture();
                 calculateTeamPoints();
                 orderTeams();
                 prepareLeagueTable();
+                if(firstLoad) {
+                    NOTIFICATION_SNAPSHOT_FIXTURE = FIXTURE;
+                }
             });
         }
 
+        function convertGoogleJsonStringToFixture(googleString) {
+            let result = [];
+            let jsonString = googleString.substring(47).slice(0, -2);
+            let fixtureSheetData = JSON.parse(jsonString);
+            fixtureSheetData.table.rows.forEach(element => {
+                if(element.c.length > 4) {
+                    result.push({
+                        "week": element.c[0].v,
+                        "homeTeam": element.c[1] !== null ? getTeamByTeamName(element.c[1].v).id : null,
+                        "awayTeam": element.c[2] !== null ? getTeamByTeamName(element.c[2].v).id : null,
+                        "homeGoals": element.c[3] !== null ? element.c[3].v : null,
+                        "awayGoals": element.c[4] !== null ? element.c[4].v : null
+                    });
+                }
+            });
+            return result;
+        }
 
         function calculateTeamPoints() {
             TEAMS.forEach(team => {
@@ -323,8 +348,10 @@
         }
 
         function getFixture() {
+            const isDev = location.href.startsWith("http://127.0.0.1:5500");
+            var googleUrl = isDev ? "https://docs.google.com/spreadsheets/d/1y37_BZteHBnCIvwJoa5j9EsOxXvcAaFBbwDji65qxmY/gviz/tq" : "https://docs.google.com/spreadsheets/d/1JqSd3wS8D_9ojkmYezEAYzKmC40q1TWRxoqQi46NRsY/gviz/tq"
             return $.ajax({
-                url: "https://docs.google.com/spreadsheets/d/1JqSd3wS8D_9ojkmYezEAYzKmC40q1TWRxoqQi46NRsY/gviz/tq"
+                url: googleUrl
             });
         }
 
@@ -361,6 +388,56 @@
             }
 
             prepareFixture();
+        }
+
+        function askNotificationPermission() {
+            // Check if the browser supports notifications
+            if(!("Notification" in window)) {
+                return;
+            }
+            Notification.requestPermission().then((permission) => {
+                if(Notification?.permission === "granted") {
+                    setInterval(checkForNewEvent, 10000);
+                }
+            });
+        }
+
+        function checkForNewEvent() {
+            $.when(getFixture()).done(function (fixtureResult) {
+                console.log("new event check");
+                let jsonString = fixtureResult.substring(47).slice(0, -2);
+                let fixtureSheetData = JSON.parse(jsonString);
+                fixtureSheetData.table.rows.forEach(element => {
+                    if(element.c.length > 4) {
+
+                        const week = element.c[0].v;
+                        const homeTeamId = element.c[1] !== null ? getTeamByTeamName(element.c[1].v).id : null;
+                        const awayTeamId = element.c[2] !== null ? getTeamByTeamName(element.c[2].v).id : null;
+                        const homeGoals = element.c[3] !== null ? parseInt(element.c[3].v) : null;
+                        const awayGoals = element.c[4] !== null ? parseInt(element.c[4].v) : null;
+                        if(homeTeamId && awayTeamId) {
+                            const existingFixtureItem = NOTIFICATION_SNAPSHOT_FIXTURE.find(x => x.homeTeam === homeTeamId && x.awayTeam === awayTeamId);
+                            if(existingFixtureItem && (homeGoals > 0 || awayGoals > 0)) {
+                                if(homeGoals !== existingFixtureItem.homeGoals ||
+                                    awayGoals !== existingFixtureItem.awayGoals
+                                ) {
+                                    const isHomeGoal = homeGoals > existingFixtureItem.homeGoals || existingFixtureItem.homeGoals === null;
+                                    const isAwayGoal = awayGoals > existingFixtureItem.awayGoals || existingFixtureItem.awayGoals === null;
+
+                                    if((isHomeGoal || isAwayGoal)) {
+                                        let notificationText = getTeamName(homeTeamId) + ": " + homeGoals + " - " + getTeamName(awayTeamId) + ": " + awayGoals + " (" + (isHomeGoal ? getTeam(homeTeamId).personName : getTeam(awayTeamId).personName) + ") attı!";
+                                        console.log(notificationText);
+                                        const notification = new window.Notification("FC 24 - GOOL!", { body: notificationText, icon: "img/apple-touch-icon.png" });
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                });
+
+                NOTIFICATION_SNAPSHOT_FIXTURE = convertGoogleJsonStringToFixture(fixtureResult);
+            });
         }
 
         var groupBy = (x, f) => x.reduce((a, b, i) => ((a[f(b, i, x)] ||= []).push(b), a), {});
