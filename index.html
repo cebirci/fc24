@@ -59,7 +59,23 @@
         var orderedTeams = [];
         var selectedTeamId = null;
 
-        $(window).on("pageshow", function () {
+        $(window).on("load", function () {
+            initPage();
+        });
+
+        $(document).on("visibilitychange", function (event) {
+            if(!document.hidden) {
+                initPage();
+            }
+        });
+
+        function initPage() {
+            TEAMS = {};
+            FIXTURE = [];
+            teamPoints = [];
+            orderedTeams = [];
+            selectedTeamId = null;
+            $('#selectedTeamInfo').html('');
             $.when(getTeams(), getFixture()).done(function (teamsResult, fixtureResult) {
                 TEAMS = teamsResult[0];
                 let result = [];
@@ -82,8 +98,7 @@
                 orderTeams();
                 prepareLeagueTable();
             });
-        });
-
+        }
 
 
         function calculateTeamPoints() {
