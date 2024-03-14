@@ -393,9 +393,11 @@
             text-align: center;
         }
 
-        table tr:hover {
-            background-color: rgba(0, 0, 255, 0.1);
-            transition: background-color 0.3s ease;
+        @media(hover: hover) {
+            table tr:hover {
+                background-color: rgba(0, 0, 255, 0.1);
+                transition: background-color 0.3s ease;
+            }
         }
 
         h2 {
