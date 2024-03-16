@@ -331,7 +331,7 @@
                 var weekTable = $("<table></table>");
 
                 weekMatches.forEach(wMatch => {
-                    weekTable.append("<tr><td>" + getTeamName(wMatch.homeTeam) + "</td><td>" + (wMatch.homeGoals !== null ? wMatch.homeGoals : "") + " - " + (wMatch.awayGoals !== null ? wMatch.awayGoals : "") + "<td>" + getTeamName(wMatch.awayTeam) + "</td></tr>")
+                    weekTable.append("<tr><td class='homeTeam'><img width='24' src='img/" + wMatch.homeTeam + ".png'/>" + getTeamName(wMatch.homeTeam) + "</td><td>" + (wMatch.homeGoals !== null ? wMatch.homeGoals : "") + " - " + (wMatch.awayGoals !== null ? wMatch.awayGoals : "") + "<td class='awayTeam'>" + getTeamName(wMatch.awayTeam) + "<img width='24' src='img/" + wMatch.awayTeam + ".png'/></td></tr>")
                 });
                 weekContainer.append(weekTable);
 
@@ -522,10 +522,12 @@
 
         .weekContainer table td:first-child {
             width: 43%;
+            text-align: left;
         }
 
         .weekContainer table td:last-child {
             width: 43%;
+            text-align: right;
         }
 
         .weekContainer table td:nth-child(2) {
@@ -543,11 +545,18 @@
             max-width: 1020px;
         }
 
+        .weekContainer table td:first-child img,
+        .weekContainer table td:last-child img,
         .leagueTable img {
             width: 24px;
             height: 24px;
             vertical-align: bottom;
             margin-right: 6px;
+        }
+
+        .weekContainer table td:last-child img{
+          margin-right: 0;
+          margin-left: 6px;
         }
 
         .leagueTable tr:first-child td {
