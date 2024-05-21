@@ -50,13 +50,11 @@
                 </div>
             </div>
         </div>
-        <div style="margin:60px 0"><button style="height: 40px; height: 40px; font-size: 24px;"
-                    id="btnBildirim">Bildirimleri Aç (Beta)</button></div>
+        <div style="margin:60px 0"></div>
     </div>
     <script>
         var TEAMS = {};
         var FIXTURE = [];
-        var NOTIFICATION_SNAPSHOT_FIXTURE = [];
         var WEEK_COUNT = 18;
         var teamPoints = [];
         var orderedTeams = [];
@@ -64,23 +62,7 @@
 
         $(window).on("load", function () {
             initPage(true);
-            if(Notification?.permission === "granted") {
-                $("#btnBildirim").hide();
-                setInterval(checkForNewEvent, 10000);
-            }
         });
-
-        $("#btnBildirim").on("click", function () {
-            if(!("Notification" in window)) {
-                alert("Tarayıcınız bildirim desteklemiyor :(");
-                return;
-            }
-            if(Notification?.permission === "granted") {
-                alert("Bildirimleriniz zaten açık :(");
-                return;
-            }
-            askNotificationPermission();
-        })
 
         $(document).on("visibilitychange", function (event) {
             if(!document.hidden) {
@@ -103,9 +85,6 @@
                 calculateTeamPoints();
                 orderTeams();
                 prepareLeagueTable();
-                if(firstLoad) {
-                    NOTIFICATION_SNAPSHOT_FIXTURE = FIXTURE;
-                }
             });
         }
 
@@ -391,56 +370,6 @@
             prepareFixture();
         }
 
-        function askNotificationPermission() {
-            // Check if the browser supports notifications
-            if(!("Notification" in window)) {
-                return;
-            }
-            Notification.requestPermission().then((permission) => {
-                if(Notification?.permission === "granted") {
-                    setInterval(checkForNewEvent, 10000);
-                }
-            });
-        }
-
-        function checkForNewEvent() {
-            $.when(getFixture()).done(function (fixtureResult) {
-                console.log("new event check");
-                let jsonString = fixtureResult.substring(47).slice(0, -2);
-                let fixtureSheetData = JSON.parse(jsonString);
-                fixtureSheetData.table.rows.forEach(element => {
-                    if(element.c.length > 4) {
-
-                        const week = element.c[0].v;
-                        const homeTeamId = element.c[1] !== null ? getTeamByTeamName(element.c[1].v).id : null;
-                        const awayTeamId = element.c[2] !== null ? getTeamByTeamName(element.c[2].v).id : null;
-                        const homeGoals = element.c[3] !== null ? parseInt(element.c[3].v) : null;
-                        const awayGoals = element.c[4] !== null ? parseInt(element.c[4].v) : null;
-                        if(homeTeamId && awayTeamId) {
-                            const existingFixtureItem = NOTIFICATION_SNAPSHOT_FIXTURE.find(x => x.homeTeam === homeTeamId && x.awayTeam === awayTeamId);
-                            if(existingFixtureItem && (homeGoals > 0 || awayGoals > 0)) {
-                                if(homeGoals !== existingFixtureItem.homeGoals ||
-                                    awayGoals !== existingFixtureItem.awayGoals
-                                ) {
-                                    const isHomeGoal = homeGoals > existingFixtureItem.homeGoals || existingFixtureItem.homeGoals === null;
-                                    const isAwayGoal = awayGoals > existingFixtureItem.awayGoals || existingFixtureItem.awayGoals === null;
-
-                                    if((isHomeGoal || isAwayGoal)) {
-                                        let notificationText = getTeamName(homeTeamId) + ": " + homeGoals + " - " + getTeamName(awayTeamId) + ": " + awayGoals + " (" + (isHomeGoal ? getTeam(homeTeamId).personName : getTeam(awayTeamId).personName) + ") attı!";
-                                        console.log(notificationText);
-                                        const notification = new window.Notification("FC 24 - GOOL!", { body: notificationText, icon: "img/apple-touch-icon.png" });
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                });
-
-                NOTIFICATION_SNAPSHOT_FIXTURE = convertGoogleJsonStringToFixture(fixtureResult);
-            });
-        }
-
         var groupBy = (x, f) => x.reduce((a, b, i) => ((a[f(b, i, x)] ||= []).push(b), a), {});
     </script>
 
@@ -554,9 +483,9 @@
             margin-right: 6px;
         }
 
-        .weekContainer table td:last-child img{
-          margin-right: 0;
-          margin-left: 6px;
+        .weekContainer table td:last-child img {
+            margin-right: 0;
+            margin-left: 6px;
         }
 
         .leagueTable tr:first-child td {
