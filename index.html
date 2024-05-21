@@ -215,7 +215,7 @@
         }
 
         function againstOrderCalculation(teamSamePoints) {
-            var againstOrderPoints = teamSamePoints.map((x) => { return { id: x.id, points: 0 } });
+            var againstOrderPoints = teamSamePoints.map((x) => { return { id: x.id, points: 0, goalsScored: 0, goalsConceded: 0 } });
             let againstOrderedTeamPoints = [];
             // check if they completed matches between
             for(let i = 0; i < teamSamePoints.length - 1; i++) {
@@ -233,6 +233,11 @@
                         againstOrderPoints.find(x => x.id == match1.homeTeam).points += 1;
                         againstOrderPoints.find(x => x.id == match1.awayTeam).points += 1;
                     }
+                    againstOrderPoints.find(x => x.id == match1.homeTeam).goalsScored += match1.homeGoals;
+                    againstOrderPoints.find(x => x.id == match1.homeTeam).goalsConceded += match1.awayGoals;
+                    againstOrderPoints.find(x => x.id == match1.awayTeam).goalsScored += match1.awayGoals;
+                    againstOrderPoints.find(x => x.id == match1.awayTeam).goalsConceded += match1.homeGoals;
+
 
                     if(match2.homeGoals > match2.awayGoals) {
                         againstOrderPoints.find(x => x.id == match2.homeTeam).points += 3;
@@ -243,10 +248,15 @@
                         againstOrderPoints.find(x => x.id == match2.awayTeam).points += 1;
                     }
 
+                    againstOrderPoints.find(x => x.id == match2.homeTeam).goalsScored += match2.homeGoals;
+                    againstOrderPoints.find(x => x.id == match2.homeTeam).goalsConceded += match2.awayGoals;
+                    againstOrderPoints.find(x => x.id == match2.awayTeam).goalsScored += match2.awayGoals;
+                    againstOrderPoints.find(x => x.id == match2.awayTeam).goalsConceded += match2.homeGoals;
+
                 }
             }
 
-            againstOrderTeamsOrdered = againstOrderPoints.sort((a, b) => b.points - a.points);
+            againstOrderTeamsOrdered = againstOrderPoints.sort((a, b) => b.points * 1000 - a.points * 1000 + (b.goalsScored - b.goalsConceded) - (a.goalsScored - a.goalsConceded));
 
             againstOrderTeamsOrdered.forEach(team => {
                 againstOrderedTeamPoints.push(teamSamePoints.find(x => x.id === team.id));
@@ -269,6 +279,8 @@
             }
         }
 
+        // order by points is normally enough, but for the first half of the session, as the matches are not completed between all teams,
+        // we're looking at the goal difference and goals scored just for better visibility.
         function orderTeamsAccordingToPointsAndDiff(teamPoints) {
             // this looks at points first, then goal difference, then goals scored
             return [...teamPoints].sort(function (a, b) {
